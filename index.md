@@ -5,7 +5,7 @@
 * [Rover](rover.page.md)
 
 ## Blog
-* [Непутевые заметки об ESP32/Raspberry PI](blog/index.md)
+* [Непутевые заметки об ESP32/Raspberry PI](_posts/first-post.md)
 
 ## Links
 - [Cloud](https://cloud.crearts.xyz)

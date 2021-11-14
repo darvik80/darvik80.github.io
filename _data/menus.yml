@@ -1,9 +1,0 @@
----
-title: Homepage
-menus: header
----
-header:
-  - url: /api
-    title: API Documentation
-    identifier: api
----
