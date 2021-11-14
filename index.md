@@ -1,10 +1,18 @@
 # ***Добро пожаловать или посторонним вход воспрещен***
 
-### Favorite projects
+---
+title: Homepage
+menus:
+    header:
+        title: Home
+    weight: 1
+---
+
+## Favorite projects
 * [Dizzy](dizzy.page.md)
 * [Rover](rover.page.md)
 
-### Blog
+## Blog
 * [Непутевые заметки об ESP32/Raspberry PI](blog/index.md)
 
 ## Links
