@@ -3,9 +3,9 @@
 ## Favorite projects
 * [Dizzy](dizzy.page.md)
 * [Rover](rover.page.md)
+* [ESP-Core](esp-core.page.md)
+  * [ESP32-C3](esp32-c3.page.md)
 
-## Blog
-* [Готовим окружение](posts/init.md)
 
 ## Links
 - [Cloud](https://cloud.crearts.xyz)
