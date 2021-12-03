@@ -1,10 +1,10 @@
 # ***Добро пожаловать или посторонним вход воспрещен***
 
 ## Favorite projects
-* [Dizzy](dizzy.page.md)
-* [Rover](rover.page.md)
-* [ESP-Core](esp-core.page.md)
-  * [ESP32-C3](esp32-c3.page.md)
+* [Dizzy](page/dizzy.md)
+* [Rover](page/rover.md)
+* [ESP-Core](page/esp-core.md)
+  * [ESP32-C3](page/esp32-c3.md)
 
 
 ## Links
