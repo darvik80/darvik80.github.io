@@ -4,7 +4,7 @@
 * [Dizzy](page/dizzy.md)
 * [Rover](page/rover.md)
 * [ESP-Core](page/esp-core.md)
-  * [ESP32-C3](page/esp32-c3.md)
+  * [ESP32-Joy](page/esp32-joy.md)
 
 
 ## Links
