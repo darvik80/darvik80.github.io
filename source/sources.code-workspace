@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "arduino-uno-first-project"
+		},
+		{
+			"name": "arduino-uno-logging",
+			"path": "arduino-uno-logging"
+		},
+		{
+			"name": "esp32-idf-first-poject",
+			"path": "esp32-idf-first-poject"
+		}
+	],
+	"settings": {}
+}
