@@ -2,6 +2,7 @@
 
 ## Blog - IoT for dev
 * [А что же дальше?](posts/init.md)
+* [Log me baby one more time...](posts/log.md)
 
 ## Favorite projects
 * [Dizzy](page/dizzy.md)
