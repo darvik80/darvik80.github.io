@@ -12,5 +12,15 @@
 			"path": "esp32-idf-first-poject"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"*.ipp": "cpp",
+			"functional": "cpp",
+			"fstream": "cpp",
+			"sstream": "cpp",
+			"stdexcept": "cpp",
+			"tuple": "cpp",
+			"typeinfo": "cpp"
+		}
+	}
 }

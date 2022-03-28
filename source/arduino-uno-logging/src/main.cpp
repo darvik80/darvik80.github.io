@@ -1,10 +1,17 @@
 #include "Logging.h"
-#include <Arduino.h>
+
+LOG_COMPONENT_SETUP(mqtt)
 
 void setup() {
-  // put your setup code here, to run once:
+    Serial.begin(115200);
+    logging::CompositeLogger::instance().addLogger(new logging::SerialColorLogger());
+    logging::info("setup root");
+    mqtt::log::info("setup sub");
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+    logging::info("loop root");
+    delay(1000);
+    mqtt::log::info("loop sub");
+    delay(1000);
 }

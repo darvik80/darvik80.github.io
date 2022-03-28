@@ -4,44 +4,47 @@
 
 #pragma once
 
+#include <Arduino.h>
 #include <HardwareSerial.h>
 
-#define DECLARE_LEVEL(LEVEL) \
-    template <class... A> \
-    static void LEVEL(const char* fmt, A&&... args) { \
-        CompositeLogger::instance().log(level::LEVEL, nullptr, fmt::format(fmt, std::forward<A>(args)...).c_str()); \
+#define DECLARE_LEVEL(LEVEL)                                                        \
+    static void LEVEL(const char *fmt, ...) {                                       \
+        char buf[64];                                                               \
+        va_list args;                                                               \
+        va_start(args, fmt);                                                        \
+        vsprintf(buf, fmt, args);                                                   \
+        va_end(args);                                                               \
+        CompositeLogger::instance().l(level::LEVEL, nullptr, buf);                  \
     }
 
 namespace logging {
     enum class level {
-        debug,
-        info,
-        warning,
-        error,
-        critical
+        debug, info, warning, error, critical
     };
 
     class Logger {
     public:
-        template<class... A>
-        void log(level lvl, const std::string &fmt, A &&... args) {
-            log(lvl, nullptr, fmt::format(fmt, std::forward<A>(args)...));
+        Logger *_next = nullptr;
+
+    public:
+        void log(level lvl, const char *fmt, ...) {
+            char buf[64];
+            va_list args;
+            va_start(args, fmt);
+            vsprintf(buf, fmt, args);
+            va_end(args);
+            l(lvl, nullptr, (const char *) buf);
         }
 
-        template<class... A>
-        void log(level lvl, const char *module, const std::string &fmt, A &&... args) {
-            log(lvl, module, fmt::format(fmt, std::forward<A>(args)...));
-        }
-
-        virtual void log(level lvl, const char *module, const char *message) = 0;
+        virtual void l(level lvl, const char *module, const char *message) = 0;
 
         virtual ~Logger() = default;
     };
 
     class SerialLogger : public Logger {
     public:
-        void log(level lvl, const char *module, const char *message) override {
-            Serial.printf("%08lu", millis());
+        void l(level lvl, const char *module, const char *message) override {
+            Serial.print(millis());
             switch (lvl) {
                 case level::debug:
                     Serial.print(" [debug]");
@@ -62,13 +65,14 @@ namespace logging {
                     Serial.print(" [ unk]");
                     break;
             }
-            if (module) {
-                Serial.print(" [");
-                Serial.print(module);
-                Serial.print("]");
-            }
 
-            Serial.print(": ");
+            Serial.print(" [");
+            if (module) {
+                Serial.print(module);
+            } else {
+                Serial.print("app");
+            }
+            Serial.print("]: ");
 
             Serial.println(message);
         }
@@ -76,37 +80,38 @@ namespace logging {
 
     class SerialColorLogger : public SerialLogger {
     public:
-        void log(level lvl, const char *module, const char *message) override {
-            Serial.printf("\033[38;5;15m%08lu [", millis());
+        void l(level lvl, const char *module, const char *message) override {
+            Serial.print("\033[38;5;15m");
+            Serial.print(millis());
             switch (lvl) {
                 case level::debug:
-                    Serial.print("\033[1;37mdebug");
+                    Serial.print(" [\033[1;37mdebug");
                     break;
                 case level::info:
-                    Serial.print("\033[1;32m info");
+                    Serial.print(" [\033[1;32m info");
                     break;
                 case level::warning:
-                    Serial.print("\033[1;33m warn");
+                    Serial.print(" [\033[1;33m warn");
                     break;
                 case level::error:
-                    Serial.print("\033[1;31merror");
+                    Serial.print(" [\033[1;31merror");
                     break;
                 case level::critical:
-                    Serial.print("\033[1;31m crit");
+                    Serial.print(" [\033[1;31m crit");
                     break;
                 default:
-                    Serial.print("\033[1;31m  unk");
+                    Serial.print(" [\033[1;31m  unk");
                     break;
             }
             Serial.print("\033[38;5;15m]");
 
+            Serial.print(" [\033[34m");
             if (module) {
-                Serial.print(" [\033[34m");
                 Serial.print(module);
-                Serial.print("\033[38;5;15m]");
+            } else {
+                Serial.print("app");
             }
-
-            Serial.print(": ");
+            Serial.print("\033[38;5;15m]: ");
 
             Serial.println(message);
         }
@@ -114,7 +119,8 @@ namespace logging {
 
     class CompositeLogger : public Logger {
         level _level{level::info};
-        std::vector<Logger *> _loggers;
+        Logger *_root{nullptr};
+
     private:
         CompositeLogger() = default;
 
@@ -126,26 +132,28 @@ namespace logging {
             return inst;
         }
 
-        void log(level lvl, const char *module, const char *message) override {
+        void l(level lvl, const char *module, const char *message) override {
             if (lvl >= _level) {
-                for (auto logger: _loggers) {
-                    logger->log(lvl, module, message);
+                Logger *logger = _root;
+                while (logger) {
+                    logger->l(lvl, module, message);
+                    logger = logger->_next;
                 }
             }
         }
 
-
-        void setLevel(level lvl) {
-            _level = lvl;
-        }
+        void setLevel(level lvl) { _level = lvl; }
 
         void addLogger(Logger *log) {
-            _loggers.emplace_back(log);
-        }
+            if (!_root) {
+                _root = log;
+            } else {
+                Logger *logger = _root;
+                while (logger && logger->_next) {
+                    logger = logger->_next;
+                }
 
-        ~CompositeLogger() override {
-            for (auto *logger: _loggers) {
-                delete logger;
+                logger->_next = log;
             }
         }
     };
@@ -167,28 +175,30 @@ namespace logging {
     DECLARE_LEVEL(error);
 
     DECLARE_LEVEL(critical);
-}
+} // namespace logging
 
-#define DECLARE_COMPONENT_LEVEL(COMPONENT, LEVEL)                                                                                   \
-    template <class... A>                                                                                                           \
-    static void LEVEL(const char* fmt, A&&... args) {                                                                               \
-        logging::CompositeLogger::instance().log(logging::level::LEVEL, #COMPONENT, fmt::format(fmt, std::forward<A>(args)...).c_str());     \
+#define DECLARE_COMPONENT_LEVEL(COMPONENT, LEVEL)                                       \
+    static void LEVEL(const char *fmt, ...) {                                           \
+        char buf[64];                                                                   \
+        va_list args;                                                                   \
+        va_start(args, fmt);                                                            \
+        vsprintf(buf, fmt, args);                                                       \
+        va_end(args);                                                                   \
+        logging::CompositeLogger::instance().l(logging::level::LEVEL, #COMPONENT, buf); \
     }
 
-#define LOG_COMPONENT_SETUP(COMPONENT)                  \
-namespace COMPONENT {                                   \
-    namespace  log {                                    \
-                                                        \
-        DECLARE_COMPONENT_LEVEL(COMPONENT, debug)       \
-                                                        \
-        DECLARE_COMPONENT_LEVEL(COMPONENT, info)        \
-                                                        \
-        DECLARE_COMPONENT_LEVEL(COMPONENT, warning)     \
-                                                        \
-        DECLARE_COMPONENT_LEVEL(COMPONENT, error)       \
-                                                        \
-        DECLARE_COMPONENT_LEVEL(COMPONENT, critical)    \
-    }                                                   \
-}
-
-
+#define LOG_COMPONENT_SETUP(COMPONENT)                                         \
+  namespace COMPONENT {                                                        \
+  namespace log {                                                              \
+                                                                               \
+  DECLARE_COMPONENT_LEVEL(COMPONENT, debug)                                    \
+                                                                               \
+  DECLARE_COMPONENT_LEVEL(COMPONENT, info)                                     \
+                                                                               \
+  DECLARE_COMPONENT_LEVEL(COMPONENT, warning)                                  \
+                                                                               \
+  DECLARE_COMPONENT_LEVEL(COMPONENT, error)                                    \
+                                                                               \
+  DECLARE_COMPONENT_LEVEL(COMPONENT, critical)                                 \
+  }                                                                            \
+  }
