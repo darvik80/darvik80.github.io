@@ -7,8 +7,10 @@
 <br>
 * Инициализация Serial port и добавление логера
 ```cpp
-    Serial.begin(115200);
-    logging::CompositeLogger::instance().addLogger(new logging::SerialLogger());
+#include "Logging.h"
+...
+Serial.begin(115200);
+logging::CompositeLogger::instance().addLogger(new logging::SerialLogger());
 ```
 
 * У нас есть модуль? Давайте заведем для него свой логгер - с блекджеком и куртизанками
@@ -16,10 +18,20 @@
 LOG_COMPONENT_SETUP(mqtt) 
 ```
 * Ну а теперь давайте что-нибудь залогируем
+#### Глобальный лог
 ```cpp
-    logging::info("globalog"); 
+logging::info("global log"); 
 ```
-
+#### Лог компонента
 ```cpp
-    mqtt::log::info("hello, i'm mqtt module"); 
+mqtt::log::info("hello, i'm mqtt module"); 
+```
+* Пришло время разукрасить куртизанок
+```cpp
+logging::CompositeLogger::instance().addLogger(new logging::SerialColorLogger());
+```
+немного подпиливаем platform.ini
+```properties
+monitor_speed=115200
+monitor_flags = --raw
 ```
