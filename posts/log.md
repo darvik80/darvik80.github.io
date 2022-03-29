@@ -35,3 +35,7 @@ logging::CompositeLogger::instance().addLogger(new logging::SerialColorLogger())
 monitor_speed=115200
 monitor_flags = --raw
 ```
+и наслаждаемся результатом
+![colored log](images/color-log.png)
+
+[Как это работает?](https://en.wikipedia.org/wiki/ANSI_escape_code#Colors)

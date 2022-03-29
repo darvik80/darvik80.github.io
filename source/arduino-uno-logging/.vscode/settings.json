@@ -1,0 +1,4 @@
+{
+    "C_Cpp.errorSquiggles": "Disabled",
+    "clang-tidy.compilerArgs": "-I/Users/darvik/.platformio/packages/framework-arduino-avr/cores/arduino"
+}
