@@ -1,0 +1,130 @@
+@startuml
+
+skinparam backgroundColor White
+skinparam classBackgroundColor LightGray
+skinparam arrowColor DarkBlue
+skinparam classBorderColor DarkBlue
+
+class etl::message_router {
+    +void on_receive(const message& msg)
+}
+
+class etl::message_router_registry {
+   +void add(const etl::message_router* router)
+}
+
+enum message_id {
+    msg_setup
+    msg_started
+    msg_loop
+    msg_ir
+}
+
+enum message_module {
+    module_app
+    module_ir
+}
+
+interface etl::message {
+    {field} message_id ID
+}
+
+class message_setup<msg_setup> {
+    iregistry* registry
+}
+
+etl::message <|-- message_setup
+
+class message_loop<msg_loop> {
+    iregistry* registry
+}
+
+etl::message <|-- message_loop
+
+class ir_receiver_message<msg_ir> {
+    uint32_t data
+}
+
+etl::message <|-- ir_receiver_message
+
+interface iregistry {
+    +template<typename C> C *module(uint8_t id)
+    +etl::imessage_router *find(uint8_t id)
+    +etl::imessage_bus &message_bus()
+    +etl::imessage_bus &sys_bus()
+}
+
+class registry {
+    +etl::imessage_router *find(uint8_t id)
+    +etl::imessage_bus &message_bus()
+    +etl::imessage_bus &sys_bus()
+}
+
+iregistry <|-- registry
+
+etl::message_router_registry <|-- registry
+
+class system_consumer<etl::message_router<system_consumer, message_setup, message_loop>> {
+    -imodule *_module
+    +void on_receive_unknown(const etl::imessage &msg)
+    +void on_receive(const message_setup &msg)
+    +void on_receive(const message_loop &msg)
+}
+
+etl::message_router <|-- system_consumer
+
+interface imodule {
+    +void setup(class iregistry &registry)
+    +void loop(class iregistry &registry)
+}
+
+class module {
+    -system_consumer consumer
+    +void setup(class iregistry &registry)
+    +void loop(class iregistry &registry)
+}
+
+imodule <|-- module
+
+class application {
+    -etl::message_bus _bus;
+    -etl::message_bus _sys;
+
+    +void setup()
+    +void loop()
+
+    +etl::imessage_bus &message_bus()
+    +etl::imessage_bus &sys_bus()
+}
+
+registry <|-- application
+
+class ir_receiver<etl::message_router<module_ir> > {
+    +void setup(class iregistry &registry)
+    +void loop(class iregistry &registry)
+}
+
+module <|-- ir_receiver
+etl::message_router <|-- ir_receiver
+
+class dc_motor<etl::message_router<module_dc> > {
+    +void on_receive(const ir_receiver_message& msg)
+    +void setup(class iregistry &registry)
+    +void loop(class iregistry &registry)
+}
+
+module <|-- dc_motor
+etl::message_router <|-- dc_motor
+
+
+class main_app {
+    +void setup()
+    +void loop()
+}
+
+application <|-- main_app
+
+message_loop --down[hidden]-> iregistry
+iregistry --down[hidden]-> imodule
+
+@enduml
