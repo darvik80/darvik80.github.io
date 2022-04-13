@@ -33,9 +33,12 @@ public:
 
 class imodule {
 public:
-    virtual void setup(class iregistry &registry) = 0;
+    virtual void setup(class iregistry &registry) {}
 
-    virtual void loop(class iregistry &registry) = 0;
+    virtual void loop(class iregistry &registry) {}
+
+    // etl::message_router stub
+    void on_receive_unknown(const etl::imessage &msg) {}
 };
 
 template<size_t MaxRouters>
@@ -57,7 +60,7 @@ public:
 };
 
 class system_consumer : public etl::message_router<system_consumer, message_setup, message_loop> {
-    imodule& _module;
+    imodule &_module;
 public:
     explicit system_consumer(imodule &module) : message_router(ALL_MESSAGE_ROUTERS), _module(module) {
     }
@@ -80,16 +83,6 @@ public:
     explicit module(iregistry &registry) : _consumer(*this) {
         registry.sys_bus().subscribe(_consumer);
     }
-
-    void setup(iregistry &registry) override {
-    }
-
-    void loop(iregistry &registry) override {
-
-    }
-
-    // etl::message_router stub
-    void on_receive_unknown(const etl::imessage &msg) {}
 };
 
 LOG_COMPONENT_SETUP(root);

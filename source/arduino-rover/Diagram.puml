@@ -65,7 +65,7 @@ iregistry <|-- registry
 etl::message_router_registry <|-- registry
 
 class system_consumer<etl::message_router<system_consumer, message_setup, message_loop>> {
-    -imodule *_module
+    -imodule &_module
     +void on_receive_unknown(const etl::imessage &msg)
     +void on_receive(const message_setup &msg)
     +void on_receive(const message_loop &msg)
