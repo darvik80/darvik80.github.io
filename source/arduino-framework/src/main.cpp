@@ -2,9 +2,10 @@
 
 #include "ir_receiver.h"
 #include "dc_motor.h"
-#include "servo_motor.h"
 
-class main_app : public application<3> {
+int RECV_PIN = 11; // define input pin on Arduino
+
+class main_app : public application<2> {
 public:
     main_app() = default;
 
@@ -12,8 +13,7 @@ public:
         Serial.begin(115200);
         logging::add_logger(new logging::serial_logger());
 
-        registry::add(new ir_receiver(*this, 11));
-        registry::add(new servo_motor(*this, 10));
+        registry::add(new ir_receiver(*this, RECV_PIN));
         registry::add(new dc_motor(*this));
 
         application::setup();
