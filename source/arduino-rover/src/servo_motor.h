@@ -24,6 +24,7 @@ public:
                                              etl::message_router<servo_motor, ir_receiver_message>(module_dc) {
         registry.message_bus().subscribe(*this);
         _dev.attach(pin);
+        _dev.write(_angle);
     }
 
     void on_receive(const ir_receiver_message& msg) {
@@ -41,16 +42,18 @@ public:
                 return;
         }
 
-        if (_angle > 150) {
-            _angle = 150;
-        } else if (_angle < 30) {
-            _angle = 30;
+        if (_angle > 140) {
+            _angle = 140;
+        } else if (_angle < 40) {
+            _angle = 40;
         }
 
         if (_lastAngle != _angle) {
-            _dev.write(_angle);
             _lastAngle = _angle;
+            _dev.write(_lastAngle);
+            servo::log::info("angle: %d", _lastAngle);
         }
+
     }
 };
 
